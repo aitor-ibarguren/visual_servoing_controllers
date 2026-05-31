@@ -1,0 +1,25 @@
+bool mantain_pose # If TRUE, the last received detection pose is set as the target pose 
+geometry_msgs/Pose destination # Destination pose from target (when mantain_pose is FALSE)
+
+float64 translation_tolerance # Translation tolerance from center the target pose
+float64 rotation_tolerance # Rotation tolerance from center the target pose
+
+builtin_interfaces/Duration task_timeout # Max allowed time - If timeout < 0 it will follow the target forever
+builtin_interfaces/Duration target_search_timeout # Max allowed time until the target is found - If timeout < 0 it will wait for the target forever
+builtin_interfaces/Duration target_lost_timeout # Max allowed time of lost target until action is finished - If timeout < 0 it will wait for the target forever
+---
+int32 error_code
+int32 SUCCESSFUL = 0
+int32 NEW_GOAL_RECEIVED = -1
+int32 TASK_TIMEOUT = -2
+int32 TARGET_SEARCH_TIMEOUT = -3
+int32 TARGET_LOST_TIMEOUT = -4
+
+string error_string
+---
+builtin_interfaces/Duration elapsed_time
+geometry_msgs/Pose error
+float64 translation_error
+float64 rotation_error
+geometry_msgs/Twist camera_twist
+geometry_msgs/Twist tip_link_twist

@@ -1,0 +1,44 @@
+name: ROS2 Jazzy CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up ROS 2 Jazzy
+      - name: Set up ROS 2 Jazzy
+        uses: ros-tooling/setup-ros@v0.7
+        with:
+          required-ros-distributions: jazzy
+
+      # 3. Create workspace & copy files from the clone repo
+      - name: Create workspace & copy files
+        run: |
+          cd ..
+          mkdir -p ros_ws/src
+          cp -r $GITHUB_WORKSPACE ros_ws/src
+
+      # 4. Install dependencies with rosdep
+      - name: Install dependencies
+        run: |
+          cd ../ros_ws
+          rosdep update
+          rosdep install --from-paths src -y --ignore-src --rosdistro jazzy
+
+      # 5. Build with colcon
+      - name: Build with colcon
+        run: |
+          cd ../ros_ws
+          source /opt/ros/jazzy/setup.bash
+          export PYTHONPATH=$PYTHONPATH:/opt/ros/jazzy/lib/python3.12/site-packages
+          colcon build --packages-select visual_servoing_controllers_msgs
+          source install/setup.bash
+          colcon build --packages-select pbvs_controller

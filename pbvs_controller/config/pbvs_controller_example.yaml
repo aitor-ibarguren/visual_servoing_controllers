@@ -1,0 +1,30 @@
+ur_pbvs_controller:
+  ros__parameters:
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+    state_interfaces:
+      - position
+      - velocity
+    command_interfaces:
+      - position
+    open_loop: true
+    feedback_active: true
+    kinematics:
+      base_link: base_link
+      tip_link: tool0
+      camera_link: ur_camera
+    detection:
+      topic_name: detection
+      topic_type: geometry_msgs/Pose
+      detection_timeout: 0.1
+    control:
+      p: 2.0
+      i: 0.0
+      d: 0.0
+      max_translation_speed: 0.250
+      max_rotation_speed: 0.500
