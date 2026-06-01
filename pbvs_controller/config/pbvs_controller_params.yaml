@@ -1,0 +1,126 @@
+pbvs_controller:
+
+  joints: {
+    type: string_array,
+    default_value: [],
+    description: "Joint names to control",
+    read_only: true,
+    validation: {
+      unique<>: null,
+    }
+  }
+
+  command_joints: {
+    type: string_array,
+    default_value: [],
+    description: "Joint names to control. If left empty, `joints` will be used. This parameters can be used ifthe SoT controller is used in a controller chain where command and state interfaces don't have same names.",
+    read_only: true,
+    validation: {
+      unique<>: null,
+    }
+  }
+
+  command_interfaces: {
+    type: string_array,
+    default_value: [],
+    description: "Command interfaces provided by the hardware interface for all joints",
+    read_only: true,
+    validation: {
+      unique<>: null,
+      subset_of<>: [["position"]],
+    }
+  }
+
+  state_interfaces: {
+    type: string_array,
+    default_value: [],
+    description: "State interfaces provided by the hardware interface for all joints.",
+    read_only: true,
+    validation: {
+      unique<>: null,
+      subset_of<>: [["position", "velocity"]],
+    }
+  }
+
+  open_loop: {
+    type: bool,
+    default_value: false,
+    description: "Defines if the controller uses the state to calculate the next joint position (false) or the previous commnand (true)",
+  }
+
+  feedback_active: {
+    type: bool,
+    default_value: false,
+    description: "Defines if the controller publishes the admittance control's internal data (true) or not (false)",
+  }
+
+  kinematics:
+    
+    base_link: {
+      type: string,
+      description: "Base link of the kinematic chain from the robot description."
+    }
+
+    tip_link: {
+      type: string,
+      description: "Tip link of the kinematic chain from the robot description."
+    }
+
+    camera_link: {
+      type: string,
+      description: "Camera link used to get the transformation between tip and camera."
+    }
+
+  detection:
+
+    topic_name: {
+      type: string,
+      description: "Specifies the name of the topic where the detection pose is received."
+    }
+
+    topic_type: {
+      type: string,
+      description: "Specifies the topic type of the received poses.",
+      validation:
+      {
+        one_of<>: [[geometry_msgs/Pose, geometry_msgs/PoseStamped]]
+      }
+    }
+
+    timeout: {
+      type: double,
+      default_value: 0.1,
+      description: "Specifies the validity period of a detection in seconds."
+    }
+
+  control:
+
+    p: {
+      type: double,
+      default_value: 1.0,
+      description: "Specifies the proportional term of the controller."
+    }
+
+    i: {
+      type: double,
+      default_value: 0.0,
+      description: "Specifies the integral term of the controller."
+    }
+
+    d: {
+      type: double,
+      default_value: 0.0,
+      description: "Specifies the derivative term of the controller."
+    }
+
+    max_translation_speed: {
+      type: double,
+      default_value: 0.150,
+      description: "Specifies the maximum translation speed."
+    }
+
+    max_rotation_speed: {
+      type: double,
+      default_value: 0.250,
+      description: "Specifies the maximum translation speed."
+    }

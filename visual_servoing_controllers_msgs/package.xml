@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>visual_servoing_controllers_msgs</name>
+  <version>1.0.0</version>
+  <description>Contains the required messages for the ROS2 Visual Servoing Controllers</description>
+
+  <author email="aitor.ibarguren.s@gmail.com">Aitor Ibarguren</author>
+  <maintainer email="aitor.ibarguren.s@gmail.com">Aitor Ibarguren</maintainer>
+  
+  <license>Apache License 2.0</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <build_depend>builtin_interfaces</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+
+  <build_depend>rosidl_default_generators</build_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

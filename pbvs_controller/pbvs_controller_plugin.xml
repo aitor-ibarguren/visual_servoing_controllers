@@ -1,0 +1,10 @@
+<library path="pbvs_controller">
+  <class name="visual_servoing_controller/PBVSController" type="visual_servoing_controller::PBVSController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      A ROS2 controller for Position-Based Visual Servoing.
+    </description>
+  </class>
+</library>
+
+
+
