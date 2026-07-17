@@ -490,7 +490,7 @@ Eigen::VectorXd PBVSController::move_twist(const Eigen::VectorXd & twist, const 
 Eigen::VectorXd PBVSController::calculate_next_joint_positions(
   const Eigen::VectorXd & joint_positions, const Eigen::VectorXd & twist, double dt)
 {
-  Eigen::VectorXd next_joint_position = Eigen::VectorXd::Zero(6);
+  Eigen::VectorXd next_joint_position = Eigen::VectorXd::Zero(dof_);
 
   // To KDL
   KDL::JntArray joint_positions_kdl(joint_positions.size());

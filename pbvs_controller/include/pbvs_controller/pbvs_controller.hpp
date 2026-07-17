@@ -265,24 +265,23 @@ protected:
   Eigen::VectorXd calculate_next_joint_positions(
     const Eigen::VectorXd & joint_positions, const Eigen::VectorXd & twist, double dt);
 
-  template <int Rows, int Cols>
-  Eigen::Matrix<double, Cols, Rows> dampedPseudoInverse(
-    const Eigen::Matrix<double, Rows, Cols> & mat, double damping)
+  template<int Rows, int Cols>
+  Eigen::Matrix<double, Cols, Rows>
+  dampedPseudoInverse(const Eigen::Matrix<double, Rows, Cols>& mat,
+                      double damping)
   {
-    using MatrixType = Eigen::Matrix<double, Rows, Cols>;
-    using SVDType = Eigen::JacobiSVD<MatrixType>;
+      Eigen::JacobiSVD<Eigen::Matrix<double, Rows, Cols>> svd(
+          mat,
+          Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-    SVDType svd(mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+      const auto& S = svd.singularValues();
 
-    const auto & S = svd.singularValues();
+      Eigen::VectorXd Sinv =
+          S.array() / (S.array().square() + damping * damping);
 
-    // Compute damped inverse of singular values
-    Eigen::VectorXd S_inv = S.array() / (S.array().square() + damping * damping);
-
-    // Build diagonal matrix directly
-    Eigen::MatrixXd D = S_inv.asDiagonal();
-
-    return svd.matrixV() * D * svd.matrixU().adjoint();
+      return svd.matrixV()
+          * Sinv.asDiagonal()
+          * svd.matrixU().adjoint();
   }
 };
 
