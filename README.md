@@ -14,6 +14,12 @@ The package includes ROS2 controllers for Visual Servoing tasks, generating robo
 
 > **⚠️ Important:** The controllers only manage the kinematic part of the Visual Servoing tasks, leaving the visual detection outside the controller. The controllers rely on a streaming of 2D/3D poses received through topics to calculate the robot movements, decoupling the target detection and tracking to facilitate the integration of different implementations.
 
+Further information about the different controllers can be found in the next sections:
+
+- [Position-Based Visual Servoing](#position-based-visual-servoing)
+- [Image-Based Visual Servoing](#image-based-visual-servoing)
+
+
 ## Position-Based Visual Servoing
 
 ### General Features
