@@ -1,0 +1,29 @@
+bool mantain_pixel # If TRUE, the last received detection pose is set as the target pose 
+geometry_msgs/Point destination # Destination pixel from target (when mantain_pose is FALSE)
+
+bool z_distance_in_detection # If TRUE, the Z distance to be applied in the image Jacobian is retrieved from the detection point's Z
+float64 predefined_z # If z_distance_in_detection is FALSE (not available in detection), the predefined Z to be applied on the image Jacobian
+
+float64 pixel_tolerance # Pixel tolerance from detection to the target pixel
+
+bool all_axes # Defines if all camera axes can move
+bool[] allowed_axes
+
+builtin_interfaces/Duration task_timeout # Max allowed time - If timeout < 0 it will follow the target forever
+builtin_interfaces/Duration target_search_timeout # Max allowed time until the target is found - If timeout < 0 it will wait for the target forever
+builtin_interfaces/Duration target_lost_timeout # Max allowed time of lost target until action is finished - If timeout < 0 it will wait for the target forever
+---
+int32 error_code
+int32 SUCCESSFUL = 0
+int32 NEW_GOAL_RECEIVED = -1
+int32 TASK_TIMEOUT = -2
+int32 TARGET_SEARCH_TIMEOUT = -3
+int32 TARGET_LOST_TIMEOUT = -4
+
+string error_string
+---
+builtin_interfaces/Duration elapsed_time
+geometry_msgs/Point error
+float64 pixel_error
+geometry_msgs/Twist camera_twist
+geometry_msgs/Twist tip_link_twist

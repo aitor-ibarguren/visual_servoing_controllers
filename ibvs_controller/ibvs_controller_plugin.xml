@@ -1,0 +1,10 @@
+<library path="ibvs_controller">
+  <class name="visual_servoing_controller/IBVSController" type="visual_servoing_controller::IBVSController" base_class_type="controller_interface::ControllerInterface">
+    <description>
+      A ROS2 controller for Image-Based Visual Servoing.
+    </description>
+  </class>
+</library>
+
+
+
