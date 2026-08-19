@@ -592,16 +592,16 @@ controller_interface::return_type IBVSController::update(
     // Calculate vision error
     Eigen::VectorXd vision_error(2);
 
-    vision_error << u - destination_u, v - destination_v;
+    vision_error << destination_u - u, destination_v - v;
 
-    RCLCPP_INFO(
-      get_node()->get_logger(), "vision_error: %3.3f %3.3f", vision_error(0), vision_error(1));
+    // RCLCPP_INFO(
+    //   get_node()->get_logger(), "vision_error: %3.3f %3.3f", vision_error(0), vision_error(1));
 
     // PID
     Eigen::VectorXd pixel_twist = pid_->calculate(vision_error, period.seconds());
 
-    RCLCPP_INFO(
-      get_node()->get_logger(), "pixel_twist: %3.3f %3.3f", pixel_twist(0), pixel_twist(1));
+    // RCLCPP_INFO(
+    //   get_node()->get_logger(), "pixel_twist: %3.3f %3.3f", pixel_twist(0), pixel_twist(1));
 
     // Get image Jacobian
     Eigen::Matrix<double, 2, 6> j = get_image_jacobian(u, v, z, fx_, fy_);
@@ -628,20 +628,20 @@ controller_interface::return_type IBVSController::update(
     Eigen::VectorXd camera_twist_base_link =
       change_twist_reference(camera_twist, base_link_H_tip_ * tip_H_camera_);
 
-    RCLCPP_INFO(
-      get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-      camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-      camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
+    // RCLCPP_INFO(
+    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
+    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
+    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
 
     // Transfer twist to tip link
     Eigen::VectorXd twist_base_link_tip = move_twist(
       camera_twist_base_link,
       (base_link_H_tip_ * tip_H_camera_).translation() - base_link_H_tip_.translation());
 
-    RCLCPP_INFO(
-      get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-      camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-      camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
+    // RCLCPP_INFO(
+    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
+    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
+    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
 
     // Get joint position commands
     joint_position_commands_ =

@@ -288,16 +288,24 @@ protected:
 
   template <int Rows, int Cols>
   Eigen::Matrix<double, Cols, Rows> dampedPseudoInverse(
-    const Eigen::Matrix<double, Rows, Cols> & mat, double damping)
+      const Eigen::Matrix<double, Rows, Cols>& mat,
+      double damping)
   {
-    Eigen::JacobiSVD<Eigen::Matrix<double, Rows, Cols>> svd(
-      mat, Eigen::ComputeThinU | Eigen::ComputeThinV);
+      Eigen::MatrixXd dynamic_mat = mat;
 
-    const auto & S = svd.singularValues();
+      Eigen::JacobiSVD<Eigen::MatrixXd> svd(
+          dynamic_mat,
+          Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-    Eigen::VectorXd Sinv = S.array() / (S.array().square() + damping * damping);
+      const Eigen::VectorXd& S = svd.singularValues();
 
-    return svd.matrixV() * Sinv.asDiagonal() * svd.matrixU().adjoint();
+      Eigen::VectorXd Sinv =
+          S.array() / (S.array().square() + damping * damping);
+
+      Eigen::MatrixXd pinv =
+          svd.matrixV() * Sinv.asDiagonal() * svd.matrixU().transpose();
+
+      return pinv;
   }
 };
 
