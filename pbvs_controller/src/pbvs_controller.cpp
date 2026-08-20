@@ -547,18 +547,8 @@ controller_interface::return_type PBVSController::update(
     Eigen::VectorXd vision_error =
       to_vector(detection_data_.last_detection_pose * pbvs_task_.target_destination.inverse());
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "vision_error: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   vision_error(0), vision_error(1), vision_error(2), vision_error(3), vision_error(4),
-    //   vision_error(5));
-
     // PID
     Eigen::VectorXd camera_twist = pid_->calculate(vision_error, period.seconds());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist(0), camera_twist(1), camera_twist(2), camera_twist(3), camera_twist(4),
-    //   camera_twist(5));
 
     // Manage max speeds
     auto t_camera_twist = camera_twist.head<3>();
@@ -573,20 +563,10 @@ controller_interface::return_type PBVSController::update(
     Eigen::VectorXd camera_twist_base_link =
       change_twist_reference(camera_twist, base_link_H_tip_ * tip_H_camera_);
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
-
     // Transfer twist to tip link
     Eigen::VectorXd twist_base_link_tip = move_twist(
       camera_twist_base_link,
       (base_link_H_tip_ * tip_H_camera_).translation() - base_link_H_tip_.translation());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
 
     // Get joint position commands
     joint_position_commands_ =
