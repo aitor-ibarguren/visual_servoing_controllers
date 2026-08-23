@@ -358,7 +358,8 @@ rclcpp_action::CancelResponse PBVSController::goal_cancelled_callback(
     // Mark the current goal as canceled
     rt_has_pending_goal_ = false;
     auto action_res = std::make_shared<PBVSAction::Result>();
-    // Set result values - ToDo
+    action_res->error_code = PBVSAction::Result::NEW_GOAL_RECEIVED;
+    action_res->error_string = "New goal received";
     active_goal->setCanceled(action_res);
     rt_pbvs_active_goal_.writeFromNonRT(RealtimePBVSGoalHandlePtr());
 

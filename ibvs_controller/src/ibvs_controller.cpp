@@ -385,7 +385,8 @@ rclcpp_action::CancelResponse IBVSController::goal_cancelled_callback(
     // Mark the current goal as canceled
     rt_has_pending_goal_ = false;
     auto action_res = std::make_shared<IBVSAction::Result>();
-    // Set result values - ToDo
+    action_res->error_code = IBVSAction::Result::NEW_GOAL_RECEIVED;
+    action_res->error_string = "New goal received";
     active_goal->setCanceled(action_res);
     rt_ibvs_active_goal_.writeFromNonRT(RealtimeIBVSGoalHandlePtr());
 
