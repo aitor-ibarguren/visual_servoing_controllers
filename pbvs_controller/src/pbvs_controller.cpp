@@ -376,7 +376,6 @@ void PBVSController::goal_accepted_callback(
   rt_has_pending_goal_ = true;
 
   // Update new PBVS task
-
   preempt_active_goal();
 
   // Set PBVS task values
@@ -459,8 +458,8 @@ void PBVSController::preempt_active_goal()
 
     action_res->error_code = PBVSAction::Result::NEW_GOAL_RECEIVED;
     action_res->error_string = "Current goal cancelled due to new incoming action.";
-    active_goal->setCanceled(action_res);
-
+    active_goal->setAborted(action_res);
+    active_goal->runNonRealtime();
     rt_pbvs_active_goal_.writeFromNonRT(RealtimePBVSGoalHandlePtr());
   }
 }

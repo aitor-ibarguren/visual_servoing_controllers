@@ -495,8 +495,8 @@ void IBVSController::preempt_active_goal()
 
     action_res->error_code = IBVSAction::Result::NEW_GOAL_RECEIVED;
     action_res->error_string = "Current goal cancelled due to new incoming action.";
-    active_goal->setCanceled(action_res);
-
+    active_goal->setAborted(action_res);
+    active_goal->runNonRealtime();
     rt_ibvs_active_goal_.writeFromNonRT(RealtimeIBVSGoalHandlePtr());
   }
 }
