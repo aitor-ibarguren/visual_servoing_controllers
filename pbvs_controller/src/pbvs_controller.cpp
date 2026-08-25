@@ -358,7 +358,8 @@ rclcpp_action::CancelResponse PBVSController::goal_cancelled_callback(
     // Mark the current goal as canceled
     rt_has_pending_goal_ = false;
     auto action_res = std::make_shared<PBVSAction::Result>();
-    // Set result values - ToDo
+    action_res->error_code = PBVSAction::Result::NEW_GOAL_RECEIVED;
+    action_res->error_string = "New goal received";
     active_goal->setCanceled(action_res);
     rt_pbvs_active_goal_.writeFromNonRT(RealtimePBVSGoalHandlePtr());
 
@@ -375,7 +376,6 @@ void PBVSController::goal_accepted_callback(
   rt_has_pending_goal_ = true;
 
   // Update new PBVS task
-
   preempt_active_goal();
 
   // Set PBVS task values
@@ -396,8 +396,8 @@ void PBVSController::goal_accepted_callback(
   pbvs_task_.target_lost = false;
 
   // Check if destination provided in goal
-  pbvs_task_.mantain_pose = goal_handle->get_goal()->mantain_pose;
-  if (!pbvs_task_.mantain_pose)
+  pbvs_task_.maintain_pose = goal_handle->get_goal()->maintain_pose;
+  if (!pbvs_task_.maintain_pose)
   {
     tf2::fromMsg(goal_handle->get_goal()->destination, pbvs_task_.target_destination);
   }
@@ -405,7 +405,7 @@ void PBVSController::goal_accepted_callback(
   pbvs_task_.task_active = true;
 
   // Goal info
-  if (!pbvs_task_.mantain_pose)
+  if (!pbvs_task_.maintain_pose)
   {
     Eigen::Vector3d t = pbvs_task_.target_destination.translation();
     Eigen::Quaterniond q(pbvs_task_.target_destination.rotation());
@@ -415,6 +415,9 @@ void PBVSController::goal_accepted_callback(
       "New target destination - Translation XYZ: %f %f %f - Rotation XYZW: %f %f %f %f", t.x(),
       t.y(), t.z(), q.x(), q.y(), q.z(), q.w());
   }
+
+  // Reset PID
+  pid_->reset();
 
   // Update the active goal
   RealtimePBVSGoalHandlePtr rt_goal = std::make_shared<RealtimePBVSGoalHandle>(goal_handle);
@@ -458,8 +461,8 @@ void PBVSController::preempt_active_goal()
 
     action_res->error_code = PBVSAction::Result::NEW_GOAL_RECEIVED;
     action_res->error_string = "Current goal cancelled due to new incoming action.";
-    active_goal->setCanceled(action_res);
-
+    active_goal->setAborted(action_res);
+    active_goal->runNonRealtime();
     rt_pbvs_active_goal_.writeFromNonRT(RealtimePBVSGoalHandlePtr());
   }
 }
@@ -547,18 +550,8 @@ controller_interface::return_type PBVSController::update(
     Eigen::VectorXd vision_error =
       to_vector(detection_data_.last_detection_pose * pbvs_task_.target_destination.inverse());
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "vision_error: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   vision_error(0), vision_error(1), vision_error(2), vision_error(3), vision_error(4),
-    //   vision_error(5));
-
     // PID
     Eigen::VectorXd camera_twist = pid_->calculate(vision_error, period.seconds());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist(0), camera_twist(1), camera_twist(2), camera_twist(3), camera_twist(4),
-    //   camera_twist(5));
 
     // Manage max speeds
     auto t_camera_twist = camera_twist.head<3>();
@@ -573,20 +566,10 @@ controller_interface::return_type PBVSController::update(
     Eigen::VectorXd camera_twist_base_link =
       change_twist_reference(camera_twist, base_link_H_tip_ * tip_H_camera_);
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
-
     // Transfer twist to tip link
     Eigen::VectorXd twist_base_link_tip = move_twist(
       camera_twist_base_link,
       (base_link_H_tip_ * tip_H_camera_).translation() - base_link_H_tip_.translation());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
 
     // Get joint position commands
     joint_position_commands_ =
@@ -695,8 +678,8 @@ void PBVSController::manage_detection()
     pbvs_task_.task_active && !pbvs_task_.initial_target_found &&
     detection_data_.first_detection_received && detection_data_.last_detection_valid)
   {
-    // Manage mantain position type task
-    if (pbvs_task_.mantain_pose)
+    // Manage maintain position type task
+    if (pbvs_task_.maintain_pose)
     {
       pbvs_task_.target_destination = detection_data_.last_detection_pose;
 

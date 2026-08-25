@@ -385,7 +385,8 @@ rclcpp_action::CancelResponse IBVSController::goal_cancelled_callback(
     // Mark the current goal as canceled
     rt_has_pending_goal_ = false;
     auto action_res = std::make_shared<IBVSAction::Result>();
-    // Set result values - ToDo
+    action_res->error_code = IBVSAction::Result::NEW_GOAL_RECEIVED;
+    action_res->error_string = "New goal received";
     active_goal->setCanceled(action_res);
     rt_ibvs_active_goal_.writeFromNonRT(RealtimeIBVSGoalHandlePtr());
 
@@ -402,7 +403,6 @@ void IBVSController::goal_accepted_callback(
   rt_has_pending_goal_ = true;
 
   // Update new IBVS task
-
   preempt_active_goal();
 
   // Set IBVS task values
@@ -422,8 +422,8 @@ void IBVSController::goal_accepted_callback(
   ibvs_task_.target_lost = false;
 
   // Check if destination provided in goal
-  ibvs_task_.mantain_pixel = goal_handle->get_goal()->mantain_pixel;
-  if (!ibvs_task_.mantain_pixel)
+  ibvs_task_.maintain_pixel = goal_handle->get_goal()->maintain_pixel;
+  if (!ibvs_task_.maintain_pixel)
   {
     tf2::fromMsg(goal_handle->get_goal()->destination, ibvs_task_.target_destination);
   }
@@ -437,7 +437,7 @@ void IBVSController::goal_accepted_callback(
     ibvs_task_.predefined_z = goal_handle->get_goal()->predefined_z;
 
   // Goal info
-  if (!ibvs_task_.mantain_pixel)
+  if (!ibvs_task_.maintain_pixel)
   {
     RCLCPP_INFO(
       get_node()->get_logger(), "New target destination - Pixel X: %f - Pixel Y: %f",
@@ -452,6 +452,9 @@ void IBVSController::goal_accepted_callback(
     for (size_t i = 0; i < goal_handle->get_goal()->allowed_axes.size(); i++)
       ibvs_task_.allowed_axes_mask(i, i) = goal_handle->get_goal()->allowed_axes[i];
   }
+
+  // Reset PID
+  pid_->reset();
 
   // Update the active goal
   RealtimeIBVSGoalHandlePtr rt_goal = std::make_shared<RealtimeIBVSGoalHandle>(goal_handle);
@@ -495,8 +498,8 @@ void IBVSController::preempt_active_goal()
 
     action_res->error_code = IBVSAction::Result::NEW_GOAL_RECEIVED;
     action_res->error_string = "Current goal cancelled due to new incoming action.";
-    active_goal->setCanceled(action_res);
-
+    active_goal->setAborted(action_res);
+    active_goal->runNonRealtime();
     rt_ibvs_active_goal_.writeFromNonRT(RealtimeIBVSGoalHandlePtr());
   }
 }
@@ -594,14 +597,8 @@ controller_interface::return_type IBVSController::update(
 
     vision_error << destination_u - u, destination_v - v;
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "vision_error: %3.3f %3.3f", vision_error(0), vision_error(1));
-
     // PID
     Eigen::VectorXd pixel_twist = pid_->calculate(vision_error, period.seconds());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "pixel_twist: %3.3f %3.3f", pixel_twist(0), pixel_twist(1));
 
     // Get image Jacobian
     Eigen::Matrix<double, 2, 6> j = get_image_jacobian(u, v, z, fx_, fy_);
@@ -628,20 +625,10 @@ controller_interface::return_type IBVSController::update(
     Eigen::VectorXd camera_twist_base_link =
       change_twist_reference(camera_twist, base_link_H_tip_ * tip_H_camera_);
 
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
-
     // Transfer twist to tip link
     Eigen::VectorXd twist_base_link_tip = move_twist(
       camera_twist_base_link,
       (base_link_H_tip_ * tip_H_camera_).translation() - base_link_H_tip_.translation());
-
-    // RCLCPP_INFO(
-    //   get_node()->get_logger(), "camera_twist_base_link: %3.3f %3.3f %3.3f %3.3f %3.3f %3.3f",
-    //   camera_twist_base_link(0), camera_twist_base_link(1), camera_twist_base_link(2),
-    //   camera_twist_base_link(3), camera_twist_base_link(4), camera_twist_base_link(5));
 
     // Get joint position commands
     joint_position_commands_ =
@@ -767,8 +754,8 @@ void IBVSController::manage_detection()
     ibvs_task_.task_active && !ibvs_task_.initial_target_found &&
     detection_data_.first_detection_received && detection_data_.last_detection_valid)
   {
-    // Manage mantain position type task
-    if (ibvs_task_.mantain_pixel)
+    // Manage maintain position type task
+    if (ibvs_task_.maintain_pixel)
     {
       ibvs_task_.target_destination = detection_data_.last_detection_point;
 
