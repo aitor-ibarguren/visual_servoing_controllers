@@ -422,8 +422,8 @@ void IBVSController::goal_accepted_callback(
   ibvs_task_.target_lost = false;
 
   // Check if destination provided in goal
-  ibvs_task_.mantain_pixel = goal_handle->get_goal()->mantain_pixel;
-  if (!ibvs_task_.mantain_pixel)
+  ibvs_task_.maintain_pixel = goal_handle->get_goal()->maintain_pixel;
+  if (!ibvs_task_.maintain_pixel)
   {
     tf2::fromMsg(goal_handle->get_goal()->destination, ibvs_task_.target_destination);
   }
@@ -437,7 +437,7 @@ void IBVSController::goal_accepted_callback(
     ibvs_task_.predefined_z = goal_handle->get_goal()->predefined_z;
 
   // Goal info
-  if (!ibvs_task_.mantain_pixel)
+  if (!ibvs_task_.maintain_pixel)
   {
     RCLCPP_INFO(
       get_node()->get_logger(), "New target destination - Pixel X: %f - Pixel Y: %f",
@@ -452,6 +452,9 @@ void IBVSController::goal_accepted_callback(
     for (size_t i = 0; i < goal_handle->get_goal()->allowed_axes.size(); i++)
       ibvs_task_.allowed_axes_mask(i, i) = goal_handle->get_goal()->allowed_axes[i];
   }
+
+  // Reset PID
+  pid_->reset();
 
   // Update the active goal
   RealtimeIBVSGoalHandlePtr rt_goal = std::make_shared<RealtimeIBVSGoalHandle>(goal_handle);
@@ -751,8 +754,8 @@ void IBVSController::manage_detection()
     ibvs_task_.task_active && !ibvs_task_.initial_target_found &&
     detection_data_.first_detection_received && detection_data_.last_detection_valid)
   {
-    // Manage mantain position type task
-    if (ibvs_task_.mantain_pixel)
+    // Manage maintain position type task
+    if (ibvs_task_.maintain_pixel)
     {
       ibvs_task_.target_destination = detection_data_.last_detection_point;
 

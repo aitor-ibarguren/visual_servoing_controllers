@@ -396,8 +396,8 @@ void PBVSController::goal_accepted_callback(
   pbvs_task_.target_lost = false;
 
   // Check if destination provided in goal
-  pbvs_task_.mantain_pose = goal_handle->get_goal()->mantain_pose;
-  if (!pbvs_task_.mantain_pose)
+  pbvs_task_.maintain_pose = goal_handle->get_goal()->maintain_pose;
+  if (!pbvs_task_.maintain_pose)
   {
     tf2::fromMsg(goal_handle->get_goal()->destination, pbvs_task_.target_destination);
   }
@@ -405,7 +405,7 @@ void PBVSController::goal_accepted_callback(
   pbvs_task_.task_active = true;
 
   // Goal info
-  if (!pbvs_task_.mantain_pose)
+  if (!pbvs_task_.maintain_pose)
   {
     Eigen::Vector3d t = pbvs_task_.target_destination.translation();
     Eigen::Quaterniond q(pbvs_task_.target_destination.rotation());
@@ -415,6 +415,9 @@ void PBVSController::goal_accepted_callback(
       "New target destination - Translation XYZ: %f %f %f - Rotation XYZW: %f %f %f %f", t.x(),
       t.y(), t.z(), q.x(), q.y(), q.z(), q.w());
   }
+
+  // Reset PID
+  pid_->reset();
 
   // Update the active goal
   RealtimePBVSGoalHandlePtr rt_goal = std::make_shared<RealtimePBVSGoalHandle>(goal_handle);
@@ -675,8 +678,8 @@ void PBVSController::manage_detection()
     pbvs_task_.task_active && !pbvs_task_.initial_target_found &&
     detection_data_.first_detection_received && detection_data_.last_detection_valid)
   {
-    // Manage mantain position type task
-    if (pbvs_task_.mantain_pose)
+    // Manage maintain position type task
+    if (pbvs_task_.maintain_pose)
     {
       pbvs_task_.target_destination = detection_data_.last_detection_pose;
 

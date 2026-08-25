@@ -74,7 +74,7 @@ struct PBVSTask
   bool target_lost;
 
   // Pose
-  bool mantain_pose;
+  bool maintain_pose;
   Eigen::Isometry3d target_destination;
 
   // Tolerances

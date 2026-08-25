@@ -1,4 +1,4 @@
-bool mantain_pose # If TRUE, the last received detection pose is set as the target pose 
+bool maintain_pose # If TRUE, the last received detection pose is set as the target pose 
 geometry_msgs/Pose destination # Destination pose from target (when mantain_pose is FALSE)
 
 float64 translation_tolerance # Translation tolerance from center the target pose

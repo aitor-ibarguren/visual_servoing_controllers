@@ -1,4 +1,4 @@
-bool mantain_pixel # If TRUE, the last received detection pose is set as the target pose 
+bool maintain_pixel # If TRUE, the last received detection pose is set as the target pose 
 geometry_msgs/Point destination # Destination pixel from target (when mantain_pose is FALSE)
 
 bool z_distance_in_detection # If TRUE, the Z distance to be applied in the image Jacobian is retrieved from the detection point's Z

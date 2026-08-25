@@ -76,7 +76,7 @@ struct IBVSTask
   bool target_lost;
 
   // Point
-  bool mantain_pixel;
+  bool maintain_pixel;
   Eigen::Vector3d target_destination;
 
   bool z_distance_in_detection;
