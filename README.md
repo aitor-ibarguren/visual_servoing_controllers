@@ -6,13 +6,13 @@
   </a>
 </p>
 
-The package includes ROS2 controllers for Visual Servoing tasks, generating robot movements based on vision detection data. Specifically, the repository contains the next controllers:
+The package includes ROS2 controllers for Visual Servoing tasks, generating robot movements based on vision detection data. Specifically, the repository contains the following controllers:
 
 * A `visual_servoing_controller/PBVSController` for Position-Based Visual Servoing tasks where the controller generates twist commands based on a 6D pose received through topics.
 
 * A `visual_servoing_controller/IBVSController` for Image-Based Visual Servoing tasks where the controller generates twist commands based on a 2D point (pixel position) received through topics.
 
-> **⚠️ Important:** The controllers only manage the kinematic part of the Visual Servoing tasks, leaving the visual detection outside the controller. The controllers rely on a streaming of 2D/3D poses received through topics to calculate the robot movements, decoupling the target detection and tracking to facilitate the integration of different implementations.
+> **⚠️ Important:** The controllers only manage the kinematic part of the Visual Servoing tasks, leaving the visual detection outside the controller. The controllers rely on a stream of 2D/6D poses received through topics to calculate the robot movements, decoupling the target detection and tracking to facilitate the integration of different implementations.
 
 Further information about the different controllers can be found in the next sections:
 
@@ -75,9 +75,9 @@ Besides the typical *joints*, *command_joints*, and *command_interfaces*, the co
   - **tip_link:** Tip link of the kinematic chain of the group.
   - **camera_link:** Camera link, origin of the vision detections, used to generate the twist commands.
 - **detection:**
-  - **topic_name:** Topic where the 3D poses of the vision detection module are received as `controller_name/topic_name`.
+  - **topic_name:** Topic where the 6D poses of the vision detection module are received as `controller_name/topic_name`.
   - **topic_type:** The topic type, currently supporting `geometry_msgs/Pose` and `geometry_msgs/PoseStamped`.
-  - **detection_timeout:** Timeout for the detection, defining the validity period the received 3D pose.
+  - **detection_timeout:** Timeout for the detection, defining the validity period of the received 6D pose.
 - **control:**
   - **p:** Proportional part P of the PID control system.
   - **i:** Integral part I of the PID control system.
@@ -85,14 +85,14 @@ Besides the typical *joints*, *command_joints*, and *command_interfaces*, the co
   - **max_translation_speed:** Maximum translation speed of the camera frame, used to limit the generated twist.
   - **max_rotation_speed:** Maximum rotation speed of the camera frame, used to limit the generated twist.
 
-These parameters allow defining the general features of the Position-Based Visual Servoing controller. Several other parameters can be set on real time with the action goal, as descrived in the next section.
+These parameters allow defining the general features of the Position-Based Visual Servoing controller. Several other parameters can be set in real time with the action goal, as described in the next section.
 
 ### PBVS Action Parameters
 
-The controller provides an action server to set PBVS tasks, defining the next parameters:
+The controller provides an action server to set PBVS tasks, defining the following parameters:
 
-- **mantain_pose:** Defines if the controller must maintain the pose of the first received 3D detection, describing a *follow the current target* task.
-- **destination:** The user can define an specific target pose (setting *mantain_pose* to false).
+- **maintain_pose:** Defines if the controller must maintain the pose of the first received &D detection, describing a *follow the current target* task.
+- **destination:** The user can define an specific target pose (setting *maintain_pose* to false).
 - **translation_tolerance:** 
 The translation tolerance value used to determine if the positioning task is completed.
 - **rotation_tolerance:** 
@@ -108,11 +108,10 @@ These action parameters allow parametrizing different PBVS tasks, offering flexi
 
 ### Feedback
 
-In order to enable the introspection of the internal control values when undesired behaviours such as instabilities and oscillations are found, the controller make use of the action feedback (activable through the *feedback_active* parameter). The custom feedback includes the next values:
+In order to enable the introspection of the internal control values when undesired behaviours such as instabilities and oscillations are found, the controller makes use of the action feedback (activable through the *feedback_active* parameter). The custom feedback includes the following values:
 
 - **elapsed_time:** Time since the action initialization.
-- **error:** The error betweeen the desired pose and the current detection pose as `geometry_msgs::msg::Pose`.
-- **received_wrench:** The wrench values received from the sensor.
+- **error:** The error between the desired pose and the current detection pose as `geometry_msgs::msg::Pose`.
 - **translation_error:** Translation error in meters, extracted from the error as the translation norm.
 - **rotation_error:** Rotation error in radians, extracted from the error through the angle-axis representation of the angle.
 - **camera_twist:** The twist vector in the camera frame, calculated from the PID control law.
@@ -123,7 +122,7 @@ In order to enable the introspection of the internal control values when undesir
 ### General Features
 
 - ROS2 controller including an action server that executes Image-Based Visual Servoing tasks.
-- The IBVS control law initially calculates a pixel twist value which is transformed in a camera twist using the image Jacobian matrix. Subsequently, this camera twist is internally computed to generate joint positions. In both steps, the controller uses **KDL** to generate the Jacobian matrix and **Eigen** to calculate the pseudo-inverse using *SVD*.
+- The IBVS control law initially calculates a pixel twist value, which is transformed into a camera twist using the image Jacobian matrix. Subsequently, this camera twist is internally computed to generate joint positions. In both steps, the controller uses **KDL** to generate the Jacobian matrix and **Eigen** to calculate the pseudo-inverse using *SVD*.
 - As the image Jacobian requires depth information, the controller supports the addition of this Z distance on the detection (Z dimension of the `geometry_msgs/Point` or `geometry_msgs/PointStamped` message) or setting a predefined Z distance for the complete task. The rest of the required information is automatically retrieved from the camera information topic.
 - Due to kinematic redundancies in Image-Based Visual Servoing (IBVS), this controller includes a feature to enable or disable specific camera motion axes during 2D image-plane error correction (e.g., restricting movement to X/Y translation or pure rotation only). This ensures a predictable, task-tailored motion and prevents undesired robot movements.
 - Allows an **open-loop** mode in which the previously commanded joint positions are used instead of the joint positions from the state interfaces, avoiding the injection of hardware feedback latency and transport delays into the command generation loop.
@@ -180,9 +179,9 @@ Besides the typical *joints*, *command_joints*, and *command_interfaces*, the co
 - **camera:**
   - **camera_info_topic_name:** Topic where the camera information is received as `sensor_msgs/CameraInfo`.
 - **detection:**
-  - **topic_name:** Topic where the pixel position of the vision detection module are received as `controller_name/topic_name`. The subscriber expects a 3D point with optional depth information.
+  - **topic_name:** Topic where the pixel position of the vision detection module is received as `controller_name/topic_name`. The subscriber expects a 3D point with optional depth information.
   - **topic_type:** The topic type, currently supporting `geometry_msgs/Point` and `geometry_msgs/PointStamped`.
-  - **detection_timeout:** Timeout for the detection, defining the validity period the received 3D pose.
+  - **detection_timeout:** Timeout for the detection, defining the validity period of the received 3D pose.
 - **control:**
   - **p:** Proportional part P of the PID control system applied to the pixel error.
   - **i:** Integral part I of the PID control system applied to the pixel error.
@@ -190,14 +189,14 @@ Besides the typical *joints*, *command_joints*, and *command_interfaces*, the co
   - **max_translation_speed:** Maximum translation speed of the camera frame, used to limit the generated twist.
   - **max_rotation_speed:** Maximum rotation speed of the camera frame, used to limit the generated twist.
 
-These parameters allow defining the general features of the Image-Based Visual Servoing controller. Several other parameters can be set on real time with the action goal, as descrived in the next section.
+These parameters allow defining the general features of the Image-Based Visual Servoing controller. Several other parameters can be set in real time with the action goal, as described in the next section.
 
 ### IBVS Action Parameters
 
-The controller provides an action server to set IBVS tasks, defining the next parameters:
+The controller provides an action server to set IBVS tasks, defining the following parameters:
 
-- **mantain_pixel:** Defines if the controller must maintain the pixel position of the first received 2D detection, describing a *follow the current target* task.
-- **destination:** The user can define an specific target pixel (setting *mantain_pixel* to false).
+- **maintain_pixel:** Defines if the controller must maintain the pixel position of the first received 2D detection, describing a *follow the current target* task.
+- **destination:** The user can define an specific target pixel (setting *maintain_pixel* to false).
 - **z_distance_in_detection:** Defines if the received detection includes the depth information on the Z dimension (true) or there is a predefined depth distance along the complete task.
 - **predefined_z:** The predefined depth distance used to calculate the image Jacobian when *z_distance_in_detection* is set to false.
 - **Pixel_tolerance:** 
@@ -211,7 +210,7 @@ The timeout until the target pose is received for the first time before aborting
 - **target_lost_timeout:** 
 The timeout whenever the target is lost (no more detection is received) before aborting the action. If the timeout value is -1 (or negative), the action will wait until the target is found again or it is cancelled.
 
-These action parameters allow parametrizing different PBVS tasks, offering flexibility to create multiple behaviours with the same controller.
+These action parameters allow parametrizing different IBVS tasks, offering flexibility to create multiple behaviours with the same controller.
 
 ### Feedback
 
