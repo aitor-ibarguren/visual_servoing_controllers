@@ -214,7 +214,7 @@ These action parameters allow parametrizing different IBVS tasks, offering flexi
 
 ### Feedback
 
-In order to enable the introspection of the internal control values when undesired behaviours such as instabilities and oscillations are found, the controller make use of the action feedback (activable through the *feedback_active* parameter). The custom feedback includes the next values:
+In order to enable the introspection of the internal control values when undesired behaviours such as instabilities and oscillations are found, the controller makes use of the action feedback (activable through the *feedback_active* parameter). The custom feedback includes the next values:
 
 - **elapsed_time:** Time since the action initialization.
 - **error:** The error betweeen the desired pixel and the current detection pixel as `geometry_msgs::msg::Point`.
